@@ -23,24 +23,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize generator with absolute paths for Railway
-import os
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-generator = ContractReportGenerator(
-    measure_data_path=os.path.join(BASE_DIR, '2026 Star Ratings Data Table - Measure Data (Oct 8 2025).csv'),
-    measure_stars_path=os.path.join(BASE_DIR, '2026 Star Ratings Data Table - Measure Stars (Oct 8 2025).csv'),
-    part_c_cutpoints_path=os.path.join(BASE_DIR, '2026 Star Ratings Data Table - Part C Cut Points (Oct 8 2025).csv'),
-    part_d_cutpoints_path=os.path.join(BASE_DIR, '2026 Star Ratings Data Table - Part D Cut Points (Oct 8 2025).csv'),
-    summary_ratings_path=os.path.join(BASE_DIR, '2026 Star Ratings Data Table - Summary Ratings (Oct 8 2025).csv')
-)
-
-@app.on_event("startup")
-async def startup_event():
-    """Load data on startup"""
-    print("Loading data files...")
-    generator.load_data()
-    print(f"✓ Loaded data: {len(generator.df_measure_data)} contracts, 45 measures")
+# Initialize generator (loads data from CSV files in current directory)
+generator = ContractReportGenerator()
 
 # Mount static files FIRST (before routes)
 app.mount("/static", StaticFiles(directory="static"), name="static")
