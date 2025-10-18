@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medicare Stars Analyzer</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⭐</text></svg>">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#0066CC',
+                        secondary: '#004C99',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .glass {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        
+        .table-row:hover {
+            background: rgba(102, 126, 234, 0.05);
+        }
+        
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="min-h-screen gradient-bg">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="glass rounded-2xl shadow-2xl p-6 mb-6">
+            <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 mb-2">
+                ⭐ Medicare Stars Analyzer
+            </h1>
+            <p class="text-gray-600">Comprehensive contract performance analysis with What-If scenarios</p>
+        </div>
+
+        <!-- Contract Selector & Metrics -->
+        <div class="glass rounded-2xl shadow-2xl p-6 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Contract Selector -->
+                <div class="relative">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Search Contract</label>
+                    <input type="text" 
+                           id="contractSearch" 
+                           placeholder="Type to search contracts..."
+                           autocomplete="off"
+                           class="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all">
+                    <div id="contractDropdown" 
+                         class="hidden absolute z-50 w-full mt-1 bg-white border-2 border-gray-200 rounded-lg shadow-xl max-h-80 overflow-y-auto">
+                        <!-- Results will be inserted here -->
+                    </div>
+                </div>
+
+                <!-- Contract Info -->
+                <div id="contractInfo" class="md:col-span-2 hidden">
+                    <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 id="contractName" class="text-lg font-bold text-gray-800"></h3>
+                                <p id="contractOrg" class="text-sm text-gray-600"></p>
+                            </div>
+                            <div class="text-right">
+                                <div id="contractRatings" class="text-sm text-gray-700"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Metrics Bar -->
+            <div id="metricsBar" class="hidden mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg p-4 text-white">
+                    <div class="text-sm font-medium opacity-90">Weighted Avg Star</div>
+                    <div id="weightedAvg" class="text-3xl font-bold mt-1">-</div>
+                </div>
+                <div class="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg p-4 text-white">
+                    <div class="text-sm font-medium opacity-90">What-If Weighted Avg</div>
+                    <div id="whatifAvg" class="text-3xl font-bold mt-1">-</div>
+                </div>
+                <div class="bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-lg p-4 text-white">
+                    <div class="text-sm font-medium opacity-90">Star Risk Score</div>
+                    <div id="riskScore" class="text-3xl font-bold mt-1">-</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Measures Table -->
+        <div id="tableContainer" class="hidden glass rounded-2xl shadow-2xl p-6">
+            <div class="mb-4">
+                <p class="text-sm text-gray-600">
+                    💡 <strong>What-If Analysis:</strong> Enter custom values to see hypothetical star ratings
+                </p>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="border-b-2 border-gray-200">
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Measure</th>
+                            <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Wt</th>
+                            <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Star</th>
+                            <th class="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Performance</th>
+                            <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Cut Point Band</th>
+                            <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Risk</th>
+                            <th class="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">To Next ⭐</th>
+                            <th class="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">What-If</th>
+                            <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">What-If ⭐</th>
+                        </tr>
+                    </thead>
+                    <tbody id="measuresBody">
+                        <!-- Rows will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
+
