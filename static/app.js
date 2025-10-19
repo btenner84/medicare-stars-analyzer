@@ -102,6 +102,11 @@ async function loadContract(contractId) {
         measures = data.measures;
         whatIfValues = {};
         
+        // Save CAI data
+        window.caiData = data.cai_data || {};
+        window.rawWeightedAvg = data.raw_weighted_avg || 0;
+        window.caiAdjustedAvg = data.cai_adjusted_avg || 0;
+        
         // Update UI
         displayContractInfo(data);
         displayMeasures(data.measures);
@@ -449,18 +454,11 @@ function calculateToNext(measure) {
 }
 
 function calculateMetrics() {
-    let weightedSum = 0;
-    let totalWeight = 0;
     let whatifWeightedSum = 0;
     let whatifTotalWeight = 0;
     let riskScore = 0;
     
     measures.forEach(measure => {
-        if (measure.star_rating) {
-            weightedSum += measure.star_rating * measure.weight;
-            totalWeight += measure.weight;
-        }
-        
         // What-If calculation
         const whatifStar = whatIfValues[measure.code];
         const starToUse = whatifStar || measure.star_rating;
@@ -479,11 +477,20 @@ function calculateMetrics() {
         }
     });
     
-    const weightedAvg = totalWeight > 0 ? (weightedSum / totalWeight).toFixed(2) : '0.00';
-    const whatifAvg = whatifTotalWeight > 0 ? (whatifWeightedSum / whatifTotalWeight).toFixed(2) : '0.00';
+    // Display raw and CAI-adjusted values from backend
+    const rawAvg = window.rawWeightedAvg || 0;
+    const caiAdj = window.caiAdjustedAvg || 0;
+    const caiValue = window.caiData?.overall_cai || 0;
     
-    document.getElementById('weightedAvg').textContent = `${weightedAvg}⭐`;
-    document.getElementById('whatifAvg').textContent = `${whatifAvg}⭐`;
+    document.getElementById('rawWeightedAvg').textContent = `${rawAvg.toFixed(2)}⭐`;
+    document.getElementById('caiValue').textContent = caiValue >= 0 ? `+${caiValue.toFixed(3)}` : caiValue.toFixed(3);
+    document.getElementById('caiAdjustedAvg').textContent = `${caiAdj.toFixed(2)}⭐`;
+    
+    // What-If with CAI adjustment
+    const whatifRaw = whatifTotalWeight > 0 ? (whatifWeightedSum / whatifTotalWeight) : 0;
+    const whatifWithCAI = whatifRaw + caiValue;
+    document.getElementById('whatifAvg').textContent = `${whatifWithCAI.toFixed(2)}⭐`;
+    
     document.getElementById('riskScore').textContent = riskScore >= 0 ? `+${riskScore.toFixed(1)}` : riskScore.toFixed(1);
 }
 
