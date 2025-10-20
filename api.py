@@ -11,7 +11,6 @@ import pandas as pd
 
 from contract_report import ContractReportGenerator
 from measure_config import get_measure_config
-from cai_calculator import CAICalculator
 
 app = FastAPI(title="Medicare Stars API")
 
@@ -26,9 +25,6 @@ app.add_middleware(
 
 # Initialize generator (loads data from CSV files in current directory)
 generator = ContractReportGenerator()
-
-# Initialize CAI calculator
-cai_calculator = CAICalculator('2026 Star Ratings Data Table - CAI (Oct 8 2025).csv')
 
 # Mount static files FIRST (before routes)
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -107,20 +103,11 @@ async def get_contract(contract_id: str):
         
         raw_weighted_avg = weighted_sum / total_weight if total_weight > 0 else 0
         
-        # Get CAI data for this contract
-        cai_data = cai_calculator.get_cai_for_contract(contract_id)
-        
-        # Apply CAI to get adjusted weighted average
-        # For overall rating, we use the overall CAI
-        cai_adjusted_avg = cai_calculator.apply_cai_to_rating(raw_weighted_avg, cai_data['overall_cai'])
-        
         return {
             "contract_info": report['contract_info'],
             "part_d_set": report['part_d_set'],
             "measures": measures,
-            "raw_weighted_avg": round(raw_weighted_avg, 2),
-            "cai_adjusted_avg": round(cai_adjusted_avg, 2),
-            "cai_data": cai_data
+            "raw_weighted_avg": round(raw_weighted_avg, 2)
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

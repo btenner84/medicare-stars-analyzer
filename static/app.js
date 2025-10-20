@@ -102,10 +102,8 @@ async function loadContract(contractId) {
         measures = data.measures;
         whatIfValues = {};
         
-        // Save CAI data
-        window.caiData = data.cai_data || {};
+        // Save raw weighted avg
         window.rawWeightedAvg = data.raw_weighted_avg || 0;
-        window.caiAdjustedAvg = data.cai_adjusted_avg || 0;
         
         // Update UI
         displayContractInfo(data);
@@ -477,19 +475,13 @@ function calculateMetrics() {
         }
     });
     
-    // Display raw and CAI-adjusted values from backend
+    // Display raw weighted average from backend
     const rawAvg = window.rawWeightedAvg || 0;
-    const caiAdj = window.caiAdjustedAvg || 0;
-    const caiValue = window.caiData?.overall_cai || 0;
-    
     document.getElementById('rawWeightedAvg').textContent = `${rawAvg.toFixed(2)}⭐`;
-    document.getElementById('caiValue').textContent = caiValue >= 0 ? `+${caiValue.toFixed(3)}` : caiValue.toFixed(3);
-    document.getElementById('caiAdjustedAvg').textContent = `${caiAdj.toFixed(2)}⭐`;
     
-    // What-If with CAI adjustment
-    const whatifRaw = whatifTotalWeight > 0 ? (whatifWeightedSum / whatifTotalWeight) : 0;
-    const whatifWithCAI = whatifRaw + caiValue;
-    document.getElementById('whatifAvg').textContent = `${whatifWithCAI.toFixed(2)}⭐`;
+    // What-If (raw calculation only)
+    const whatifAvg = whatifTotalWeight > 0 ? (whatifWeightedSum / whatifTotalWeight) : 0;
+    document.getElementById('whatifAvg').textContent = `${whatifAvg.toFixed(2)}⭐`;
     
     document.getElementById('riskScore').textContent = riskScore >= 0 ? `+${riskScore.toFixed(1)}` : riskScore.toFixed(1);
 }
